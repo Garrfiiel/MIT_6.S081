@@ -309,6 +309,7 @@ fork(void)
 
   acquire(&wait_lock);
   np->parent = p;
+  np->mask = p->mask;
   release(&wait_lock);
 
   acquire(&np->lock);
@@ -653,4 +654,19 @@ procdump(void)
     printf("%d %s %s", p->pid, state, p->name);
     printf("\n");
   }
+}
+
+uint64
+unusedproc(void)
+{
+  struct proc *p;
+  uint64 nop = 0;
+  for(p = proc; p < &proc[NPROC]; p++){
+    acquire(&p->lock);
+    if(p->state != UNUSED){
+      nop++;
+    }
+    release(&p->lock);
+  }
+return nop;
 }
