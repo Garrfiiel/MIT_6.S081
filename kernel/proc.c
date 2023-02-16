@@ -246,6 +246,26 @@ uchar initcode[] = {
   0x00, 0x00, 0x00, 0x00
 };
 
+int 
+pgaccess(void *pg, int pn, void *ua) 
+{
+    struct proc *p = myproc();
+    if(p == 0){
+        return 1;
+    }
+    pagetable_t pagetable = p->pagetable;
+    uint64 buf = 0;
+    for(int i = 0; i < pn; i++){
+        pte_t *pte;
+        pte = walk(pagetable, ((uint64)pg) + (uint64)PGSIZE * i, 0);
+        if(pte != 0 && ((*pte) & PTE_A)){
+            buf |= 1 << i;
+            *pte ^= PTE_A;
+        }
+    }
+    return copyout(pagetable, (uint64)ua, (char *)&buf, sizeof(buf));
+}
+
 // Set up first user process.
 void
 userinit(void)
